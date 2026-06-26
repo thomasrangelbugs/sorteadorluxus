@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sorteador Luxus × La Torre</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --gold: #f0b429;
+      --gold-light: #ffd86b;
+      --gold-dark: #b8860b;
+      --blue: #3d9eff;
+      --blue-glow: #6ec3ff;
+      --bg: #06060c;
+      --card: rgba(18, 18, 28, 0.72);
+      --border: rgba(240, 180, 41, 0.25);
+      --text: #f5f5f7;
+      --muted: #9a9ab0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Outfit", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .aurora {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% 20%, rgba(61, 158, 255, 0.12), transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 70%, rgba(240, 180, 41, 0.1), transparent 55%),
+        radial-gradient(ellipse 50% 30% at 50% 100%, rgba(110, 195, 255, 0.08), transparent 50%);
+      animation: auroraShift 12s ease-in-out infinite alternate;
+    }
+
+    @keyframes auroraShift {
+      0% { filter: hue-rotate(0deg) brightness(1); transform: scale(1); }
+      100% { filter: hue-rotate(15deg) brightness(1.1); transform: scale(1.05); }
+    }
+
+    .wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 4rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .logos {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.25rem;
+    }
+
+    .logos img {
+      height: 72px;
+      width: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 0 18px rgba(240, 180, 41, 0.35));
+      animation: logoFloat 4s ease-in-out infinite;
+    }
+
+    .logos img:nth-child(2) {
+      height: 64px;
+      animation-delay: -2s;
+      filter: drop-shadow(0 0 18px rgba(61, 158, 255, 0.35));
+    }
+
+    @keyframes logoFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+
+    .divider-x {
+      font-family: "Bebas Neue", sans-serif;
+      font-size: 1.5rem;
+      color: var(--muted);
+      opacity: 0.5;
+    }
+
+    h1 {
+      font-family: "Bebas Neue", sans-serif;
+      font-size: clamp(2.2rem, 6vw, 3.4rem);
+      letter-spacing: 0.06em;
+      background: linear-gradient(135deg, var(--gold-light), var(--gold), var(--blue-glow));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      margin-top: 0.4rem;
+      font-size: 1rem;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1.75rem;
+      backdrop-filter: blur(16px);
+      box-shadow:
+        0 0 40px rgba(61, 158, 255, 0.06),
+        0 20px 60px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-bottom: 0.75rem;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 180px;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.95rem;
+      padding: 1rem;
+      resize: vertical;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: rgba(240, 180, 41, 0.45);
+      box-shadow: 0 0 0 3px rgba(240, 180, 41, 0.12);
+    }
+
+    .options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      margin-top: 1.5rem;
+    }
+
+    @media (max-width: 600px) {
+      .options { grid-template-columns: 1fr; }
+    }
+
+    .option-card {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 14px;
+      padding: 1rem 1.1rem;
+    }
+
+    .radio-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .radio-group label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 400;
+      cursor: pointer;
+      margin: 0;
+      font-size: 0.9rem;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      margin-top: 0.5rem;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 1.1rem;
+      padding: 0.65rem 0.85rem;
+    }
+
+    input[type="number"]:focus {
+      outline: none;
+      border-color: rgba(61, 158, 255, 0.45);
+    }
+
+    .names-input-wrap.hidden,
+    .names-loaded.hidden {
+      display: none;
+    }
+
+    .names-loaded {
+      margin-top: 0.5rem;
+      padding: 1.25rem 1rem;
+      border-radius: 12px;
+      text-align: center;
+      background: rgba(240, 180, 41, 0.08);
+      border: 1px solid rgba(240, 180, 41, 0.25);
+    }
+
+    .names-loaded p {
+      color: var(--gold-light);
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .names-loaded span {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .btn-edit-list {
+      margin-top: 0.85rem;
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .btn-edit-list:hover {
+      color: var(--text);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-sortear {
+      display: block;
+      width: 100%;
+      margin-top: 1.5rem;
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: 14px;
+      font-family: "Bebas Neue", sans-serif;
+      font-size: 1.5rem;
+      letter-spacing: 0.12em;
+      cursor: pointer;
+      color: #1a1200;
+      background: linear-gradient(135deg, var(--gold-light), var(--gold), var(--gold-dark));
+      box-shadow:
+        0 0 30px rgba(240, 180, 41, 0.35),
+        0 8px 24px rgba(0, 0, 0, 0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .btn-sortear:hover:not(:disabled) {
+      transform: translateY(-2px) scale(1.01);
+      box-shadow:
+        0 0 45px rgba(240, 180, 41, 0.5),
+        0 12px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .btn-sortear:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .error {
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      background: rgba(220, 60, 60, 0.15);
+      border: 1px solid rgba(220, 60, 60, 0.35);
+      color: #ff8a8a;
+      font-size: 0.9rem;
+      display: none;
+    }
+
+    .error.show { display: block; }
+
+    /* ===== STAGE DE ANIMAÇÃO ===== */
+    #stage {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      background: rgba(6, 6, 12, 0.88);
+      backdrop-filter: blur(8px);
+    }
+
+    #stage.active { display: flex; }
+
+    #stage-canvas {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .pot-scene {
+      position: relative;
+      width: 220px;
+      height: 260px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 2;
+    }
+
+    .pot {
+      position: relative;
+      width: 160px;
+      height: 180px;
+      transform-origin: bottom center;
+    }
+
+    .pot.shaking {
+      animation: potShake 0.12s ease-in-out infinite;
+    }
+
+    .pot.shaking-hard {
+      animation: potShakeHard 0.07s ease-in-out infinite;
+    }
+
+    @keyframes potShake {
+      0%, 100% { transform: rotate(0deg) translateX(0); }
+      25% { transform: rotate(-4deg) translateX(-4px); }
+      75% { transform: rotate(4deg) translateX(4px); }
+    }
+
+    @keyframes potShakeHard {
+      0%, 100% { transform: rotate(0deg) translate(0, 0); }
+      20% { transform: rotate(-8deg) translate(-8px, 2px); }
+      40% { transform: rotate(8deg) translate(8px, -2px); }
+      60% { transform: rotate(-6deg) translate(-6px, 3px); }
+      80% { transform: rotate(6deg) translate(6px, -1px); }
+    }
+
+    .pot-body {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 140px;
+      height: 130px;
+      background: linear-gradient(160deg, #ffe08a 0%, var(--gold) 35%, var(--gold-dark) 100%);
+      border-radius: 8px 8px 50% 50% / 8px 8px 40% 40%;
+      box-shadow:
+        inset -12px 0 24px rgba(0, 0, 0, 0.2),
+        inset 8px 0 16px rgba(255, 255, 255, 0.15),
+        0 12px 40px rgba(240, 180, 41, 0.4);
+    }
+
+    .pot-rim {
+      position: absolute;
+      bottom: 118px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 155px;
+      height: 22px;
+      background: linear-gradient(180deg, #fff0b0, var(--gold-light), var(--gold-dark));
+      border-radius: 50%;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .pot-lid {
+      position: absolute;
+      bottom: 128px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 150px;
+      height: 28px;
+      background: linear-gradient(180deg, var(--gold-light), var(--gold));
+      border-radius: 50% 50% 20% 20%;
+      box-shadow: 0 -2px 8px rgba(255, 255, 255, 0.2);
+      transition: transform 0.4s ease, opacity 0.4s;
+    }
+
+    .pot.lid-off .pot-lid {
+      transform: translateX(-50%) translateY(-60px) rotate(-25deg);
+      opacity: 0;
+    }
+
+    .pot-glow {
+      position: absolute;
+      bottom: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 180px;
+      height: 60px;
+      background: radial-gradient(ellipse, rgba(240, 180, 41, 0.5), transparent 70%);
+      animation: glowPulse 1s ease-in-out infinite;
+    }
+
+    @keyframes glowPulse {
+      0%, 100% { opacity: 0.6; transform: translateX(-50%) scale(1); }
+      50% { opacity: 1; transform: translateX(-50%) scale(1.15); }
+    }
+
+    .name-flash {
+      position: absolute;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: "Bebas Neue", sans-serif;
+      font-size: 1rem;
+      color: rgba(255, 255, 255, 0.7);
+      white-space: nowrap;
+      text-shadow: 0 0 10px var(--blue-glow);
+      opacity: 0;
+      transition: opacity 0.1s;
+    }
+
+    .name-flash.visible { opacity: 1; }
+
+    .status-text {
+      margin-top: 2rem;
+      font-family: "Bebas Neue", sans-serif;
+      font-size: 1.4rem;
+      letter-spacing: 0.15em;
+      color: var(--gold-light);
+      text-shadow: 0 0 20px rgba(240, 180, 41, 0.5);
+      z-index: 2;
+      animation: statusPulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes statusPulse {
+      0%, 100% { opacity: 0.7; }
+      50% { opacity: 1; }
+    }
+
+    /* Explosão */
+    .explosion-ring {
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 3px solid var(--gold-light);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .explosion-ring.burst {
+      animation: ringBurst 0.8s ease-out forwards;
+    }
+
+    @keyframes ringBurst {
+      0% { transform: scale(0.5); opacity: 1; border-width: 4px; }
+      100% { transform: scale(12); opacity: 0; border-width: 1px; }
+    }
+
+    .flash-overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle, rgba(255, 220, 100, 0.6), transparent 70%);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 50;
+    }
+
+    .flash-overlay.burst {
+      animation: screenFlash 0.6s ease-out forwards;
+    }
+
+    @keyframes screenFlash {
+      0% { opacity: 0; }
+      20% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    /* Resultado */
+    .winner-reveal {
+      position: absolute;
+      z-index: 10;
+      text-align: center;
+      opacity: 0;
+      transform: scale(0.3);
+      pointer-events: none;
+    }
+
+    .winner-reveal.show {
+      animation: winnerPop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      pointer-events: auto;
+    }
+
+    @keyframes winnerPop {
+      0% { opacity: 0; transform: scale(0.2); }
+      60% { opacity: 1; transform: scale(1.08); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    .winner-label {
+      font-size: 1rem;
+      color: var(--blue-glow);
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .winner-name {
+      font-family: "Bebas Neue", sans-serif;
+      font-size: clamp(2.5rem, 8vw, 4.5rem);
+      letter-spacing: 0.05em;
+      background: linear-gradient(135deg, #fff, var(--gold-light), var(--gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 30px rgba(240, 180, 41, 0.6));
+    }
+
+    .winner-rank {
+      margin-top: 0.5rem;
+      font-size: 1.1rem;
+      color: var(--muted);
+    }
+
+    .btn-close {
+      margin-top: 2rem;
+      padding: 0.75rem 2rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s;
+      z-index: 10;
+      display: none;
+    }
+
+    .btn-close.show { display: block; }
+
+    .btn-close:hover { background: rgba(255, 255, 255, 0.1); }
+
+    .dimmed { opacity: 0.15; pointer-events: none; transition: opacity 0.5s; }
+  </style>
+</head>
+<body>
+  <canvas id="bg-canvas"></canvas>
+  <div class="aurora"></div>
+
+  <div class="wrap" id="main-content">
+    <header>
+      <div class="logos">
+        <img src="assets/luxus.png" alt="Luxus" />
+        <span class="divider-x">×</span>
+        <img src="assets/latorre.png" alt="La Torre" />
+      </div>
+      <h1>SORTEADOR</h1>
+      <p class="subtitle">Cole os nomes, configure e descubra os ganhadores</p>
+    </header>
+
+    <div class="panel">
+      <label for="names">Lista de participantes</label>
+      <p class="hint">Um nome por linha. Repita o nome se a pessoa tiver mais de uma chance.</p>
+
+      <div class="names-input-wrap" id="names-input-wrap">
+        <textarea id="names" placeholder="Maria&#10;João&#10;Maria&#10;Pedro"></textarea>
+      </div>
+
+      <div class="names-loaded hidden" id="names-loaded">
+        <p>Lista carregada</p>
+        <span>Os nomes estão ocultos e prontos para o sorteio</span>
+        <button type="button" class="btn-edit-list" id="btn-edit-list">Editar lista</button>
+      </div>
+
+      <div class="options">
+        <div class="option-card">
+          <label>Nomes repetidos?</label>
+          <div class="radio-group">
+            <label><input type="radio" name="dupes" value="yes" checked /> Sim — cada linha conta</label>
+            <label><input type="radio" name="dupes" value="no" /> Não — só uma chance por nome</label>
+          </div>
+        </div>
+        <div class="option-card">
+          <label for="qty">Quantos ganhadores?</label>
+          <input type="number" id="qty" min="1" value="1" />
+        </div>
+      </div>
+
+      <div class="error" id="error"></div>
+      <button class="btn-sortear" id="btn-sortear">SORTEAR AGORA</button>
+    </div>
+  </div>
+
+  <!-- Palco da animação -->
+  <div id="stage">
+    <canvas id="stage-canvas"></canvas>
+    <div class="flash-overlay" id="flash"></div>
+
+    <div class="pot-scene" id="pot-scene">
+      <div class="pot" id="pot">
+        <div class="pot-glow"></div>
+        <div class="pot-lid"></div>
+        <div class="pot-rim"></div>
+        <div class="pot-body"></div>
+        <div class="name-flash" id="name-flash"></div>
+      </div>
+      <div class="explosion-ring" id="ring"></div>
+    </div>
+
+    <p class="status-text" id="status-text">MISTURANDO...</p>
+
+    <div class="winner-reveal" id="winner-reveal">
+      <div class="winner-label">Ganhador</div>
+      <div class="winner-name" id="winner-name"></div>
+      <div class="winner-rank" id="winner-rank"></div>
+    </div>
+
+    <button class="btn-close" id="btn-close">Voltar</button>
+  </div>
+
+  <script>
+    // ===== PARTÍCULAS DE FUNDO =====
+    const bgCanvas = document.getElementById("bg-canvas");
+    const bgCtx = bgCanvas.getContext("2d");
+    let bgParticles = [];
+
+    function resizeBg() {
+      bgCanvas.width = window.innerWidth;
+      bgCanvas.height = window.innerHeight;
+    }
+
+    function initBgParticles() {
+      bgParticles = [];
+      const count = Math.min(80, Math.floor(window.innerWidth / 14));
+      for (let i = 0; i < count; i++) {
+        bgParticles.push({
+          x: Math.random() * bgCanvas.width,
+          y: Math.random() * bgCanvas.height,
+          r: Math.random() * 2 + 0.5,
+          dx: (Math.random() - 0.5) * 0.4,
+          dy: (Math.random() - 0.5) * 0.4,
+          gold: Math.random() > 0.5,
+          alpha: Math.random() * 0.5 + 0.1,
+        });
+      }
+    }
+
+    function drawBg() {
+      bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+      for (const p of bgParticles) {
+        p.x += p.dx;
+        p.y += p.dy;
+        if (p.x < 0) p.x = bgCanvas.width;
+        if (p.x > bgCanvas.width) p.x = 0;
+        if (p.y < 0) p.y = bgCanvas.height;
+        if (p.y > bgCanvas.height) p.y = 0;
+
+        bgCtx.beginPath();
+        bgCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        bgCtx.fillStyle = p.gold
+          ? `rgba(240, 180, 41, ${p.alpha})`
+          : `rgba(110, 195, 255, ${p.alpha})`;
+        bgCtx.fill();
+      }
+      requestAnimationFrame(drawBg);
+    }
+
+    window.addEventListener("resize", () => { resizeBg(); initBgParticles(); });
+    resizeBg();
+    initBgParticles();
+    drawBg();
+
+    // ===== SORTEIO CRIPTOGRÁFICO (equivalente a crypto.randomInt) =====
+    function cryptoRandomInt(min, max) {
+      if (max === undefined) {
+        max = min;
+        min = 0;
+      }
+      if (!Number.isInteger(min) || !Number.isInteger(max)) {
+        throw new TypeError("Os limites do sorteio devem ser números inteiros.");
+      }
+      if (min >= max) {
+        throw new RangeError("Intervalo inválido para sorteio.");
+      }
+
+      const range = max - min;
+      const UINT32_MAX = 0x1_0000_0000;
+      const limit = UINT32_MAX - (UINT32_MAX % range);
+      const buf = new Uint32Array(1);
+
+      let value;
+      do {
+        crypto.getRandomValues(buf);
+        value = buf[0];
+      } while (value >= limit);
+
+      return min + (value % range);
+    }
+
+    function cryptoSample(pool, qty, allowDupes) {
+      const winners = [];
+      const available = pool.map((_, i) => i);
+
+      for (let i = 0; i < qty; i++) {
+        const pick = cryptoRandomInt(0, available.length);
+        winners.push(pool[available[pick]]);
+        if (!allowDupes) {
+          available.splice(pick, 1);
+        }
+      }
+
+      return winners;
+    }
+
+    // ===== LÓGICA DO SORTEIO =====
+    function parseNames(text) {
+      return text.split("\n").map(l => l.trim().replace(/^@/, "")).filter(Boolean);
+    }
+
+    function buildPool(names, allowDupes) {
+      if (allowDupes) return [...names];
+      const seen = new Set();
+      const unique = [];
+      for (const n of names) {
+        const key = n.toLowerCase();
+        if (!seen.has(key)) { seen.add(key); unique.push(n); }
+      }
+      return unique;
+    }
+
+    function drawWinners(names, qty, allowDupes) {
+      const pool = buildPool(names, allowDupes);
+      if (!pool.length) throw new Error("Nenhum participante encontrado.");
+      if (qty < 1) throw new Error("Informe pelo menos 1 ganhador.");
+      if (!allowDupes && qty > pool.length) {
+        throw new Error("Participantes únicos insuficientes. Reduza os ganhadores ou permita repetidos.");
+      }
+      return cryptoSample(pool, qty, allowDupes);
+    }
+
+    // ===== LISTA DE NOMES (oculta após colar) =====
+    const namesEl = document.getElementById("names");
+    const namesInputWrap = document.getElementById("names-input-wrap");
+    const namesLoaded = document.getElementById("names-loaded");
+    const btnEditList = document.getElementById("btn-edit-list");
+    let storedNames = [];
+
+    function lockNamesList() {
+      const names = parseNames(namesEl.value);
+      if (!names.length) return false;
+      storedNames = names;
+      namesEl.value = "";
+      namesInputWrap.classList.add("hidden");
+      namesLoaded.classList.remove("hidden");
+      return true;
+    }
+
+    function unlockNamesList() {
+      namesEl.value = storedNames.join("\n");
+      storedNames = [];
+      namesLoaded.classList.add("hidden");
+      namesInputWrap.classList.remove("hidden");
+      namesEl.focus();
+    }
+
+    namesEl.addEventListener("paste", () => {
+      setTimeout(lockNamesList, 0);
+    });
+
+    btnEditList.addEventListener("click", unlockNamesList);
+
+    function getActiveNames() {
+      const typed = parseNames(namesEl.value);
+      return typed.length ? typed : storedNames;
+    }
+
+    // ===== PARTÍCULAS DO STAGE (explosão) =====
+    const stageCanvas = document.getElementById("stage-canvas");
+    const stageCtx = stageCanvas.getContext("2d");
+    let stageParticles = [];
+    let stageAnimating = false;
+
+    function resizeStage() {
+      stageCanvas.width = window.innerWidth;
+      stageCanvas.height = window.innerHeight;
+    }
+
+    function spawnExplosion(cx, cy, count = 120) {
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 8 + 2;
+        stageParticles.push({
+          x: cx, y: cy,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          r: Math.random() * 5 + 2,
+          life: 1,
+          decay: Math.random() * 0.015 + 0.008,
+          gold: Math.random() > 0.35,
+        });
+      }
+    }
+
+    function drawStageParticles() {
+      if (!stageAnimating && stageParticles.length === 0) return;
+      stageCtx.clearRect(0, 0, stageCanvas.width, stageCanvas.height);
+
+      stageParticles = stageParticles.filter(p => p.life > 0);
+      for (const p of stageParticles) {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.12;
+        p.life -= p.decay;
+        stageCtx.beginPath();
+        stageCtx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2);
+        stageCtx.fillStyle = p.gold
+          ? `rgba(255, 216, 107, ${p.life})`
+          : `rgba(110, 195, 255, ${p.life})`;
+        stageCtx.fill();
+      }
+      requestAnimationFrame(drawStageParticles);
+    }
+
+    function sleep(ms) {
+      return new Promise(r => setTimeout(r, ms));
+    }
+
+    // ===== ANIMAÇÃO PRINCIPAL =====
+    const stage = document.getElementById("stage");
+    const pot = document.getElementById("pot");
+    const nameFlash = document.getElementById("name-flash");
+    const statusText = document.getElementById("status-text");
+    const flash = document.getElementById("flash");
+    const ring = document.getElementById("ring");
+    const winnerReveal = document.getElementById("winner-reveal");
+    const winnerName = document.getElementById("winner-name");
+    const winnerRank = document.getElementById("winner-rank");
+    const btnClose = document.getElementById("btn-close");
+    const mainContent = document.getElementById("main-content");
+    const errorEl = document.getElementById("error");
+    const btnSortear = document.getElementById("btn-sortear");
+
+    async function animateDraw(winners, pool) {
+      stage.classList.add("active");
+      mainContent.classList.add("dimmed");
+      resizeStage();
+      stageAnimating = true;
+      drawStageParticles();
+
+      pot.style.display = "block";
+      pot.className = "pot shaking";
+      winnerReveal.classList.remove("show");
+      btnClose.classList.remove("show");
+      statusText.style.display = "block";
+      statusText.textContent = "MISTURANDO...";
+
+      // 5 segundos de pote balançando com nomes piscando
+      const shakeDuration = 5000;
+      const start = Date.now();
+      let flashInterval = setInterval(() => {
+        const elapsed = Date.now() - start;
+        if (elapsed > shakeDuration * 0.6) {
+          pot.className = "pot shaking-hard";
+        }
+        const randomName = pool[Math.floor(Math.random() * pool.length)];
+        nameFlash.textContent = "•••";
+        nameFlash.classList.add("visible");
+        setTimeout(() => nameFlash.classList.remove("visible"), 80);
+      }, 120);
+
+      await sleep(shakeDuration);
+      clearInterval(flashInterval);
+
+      // Explosão
+      statusText.textContent = "BOOM!";
+      pot.classList.add("lid-off");
+
+      const potRect = document.getElementById("pot-scene").getBoundingClientRect();
+      const cx = potRect.left + potRect.width / 2;
+      const cy = potRect.top + potRect.height / 2;
+
+      flash.classList.add("burst");
+      ring.classList.add("burst");
+      spawnExplosion(cx, cy, 150);
+      spawnExplosion(cx, cy, 80);
+
+      await sleep(600);
+      pot.style.display = "none";
+      flash.classList.remove("burst");
+      ring.classList.remove("burst");
+      statusText.style.display = "none";
+
+      // Revelar ganhadores um por um
+      for (let i = 0; i < winners.length; i++) {
+        winnerReveal.classList.remove("show");
+        void winnerReveal.offsetWidth;
+        winnerName.textContent = winners[i];
+        winnerRank.textContent = winners.length > 1 ? "Parabéns!" : "";
+        document.querySelector(".winner-label").textContent =
+          winners.length > 1 ? "Ganhador" : "Ganhador";
+        winnerReveal.classList.add("show");
+
+        const rcx = window.innerWidth / 2;
+        const rcy = window.innerHeight / 2;
+        spawnExplosion(rcx, rcy, 60);
+
+        if (i < winners.length - 1) {
+          await sleep(2500);
+        }
+      }
+
+      stageAnimating = false;
+      btnClose.classList.add("show");
+    }
+
+    btnClose.addEventListener("click", () => {
+      stage.classList.remove("active");
+      mainContent.classList.remove("dimmed");
+      pot.style.display = "block";
+      pot.className = "pot";
+      pot.classList.remove("lid-off");
+      winnerReveal.classList.remove("show");
+      btnClose.classList.remove("show");
+      stageParticles = [];
+      stageCtx.clearRect(0, 0, stageCanvas.width, stageCanvas.height);
+    });
+
+    btnSortear.addEventListener("click", async () => {
+      errorEl.classList.remove("show");
+
+      if (parseNames(namesEl.value).length) {
+        lockNamesList();
+      }
+
+      const names = getActiveNames();
+      const allowDupes = document.querySelector('input[name="dupes"]:checked').value === "yes";
+      const qty = parseInt(document.getElementById("qty").value, 10);
+
+      try {
+        const pool = buildPool(names, allowDupes);
+        const winners = drawWinners(names, qty, allowDupes);
+        btnSortear.disabled = true;
+        await animateDraw(winners, pool);
+      } catch (e) {
+        errorEl.textContent = e.message;
+        errorEl.classList.add("show");
+      } finally {
+        btnSortear.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
